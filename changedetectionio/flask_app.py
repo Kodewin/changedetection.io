@@ -105,7 +105,11 @@ with app.app_context():
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.jinja_env.add_extension("jinja2.ext.loopcontrols")
 csrf = CSRFProtect()
+
 csrf.init_app(app)
+
+# csrf.init_app(app)
+
 notification_debug_log = []
 
 # get locale ready
