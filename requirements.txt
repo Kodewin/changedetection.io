@@ -1,93 +1,104 @@
-# Used by Pyppeteer
-pyee
-
-eventlet>=0.36.1 # fixes SSL error on Python 3.12
-feedgen~=0.9
-flask-compress
-# 0.6.3 included compatibility fix for werkzeug 3.x (2.x had deprecation of url handlers)
-flask-login>=0.6.3
-flask-paginate
-flask_expects_json~=1.7
-flask_restful
-flask_cors # For the Chrome extension to operate
-flask_wtf~=1.2
-flask~=2.3
-inscriptis~=2.2
-pytz
-timeago~=1.0
-validators~=0.21
-
-
-# Set these versions together to avoid a RequestsDependencyWarning
-# >= 2.26 also adds Brotli support if brotli is installed
-brotli~=1.0
-requests[socks]
-
-urllib3==1.26.19
-chardet>2.3.0
-
-wtforms~=3.0
-jsonpath-ng~=1.5.3
-
-dnspython==2.6.1 # related to eventlet fixes
-
-# jq not available on Windows so must be installed manually
-
-# Notification library
-apprise~=1.8.0
-
-# apprise mqtt https://github.com/dgtlmoon/changedetection.io/issues/315
-# and 2.0.0 https://github.com/dgtlmoon/changedetection.io/issues/2241 not yet compatible
-# use v1.x due to https://github.com/eclipse/paho.mqtt.python/issues/814
-paho-mqtt>=1.6.1,<2.0.0
-
-# Requires extra wheel for rPi
-cryptography~=42.0.8
-
-# Used for CSS filtering
-beautifulsoup4
-
-# XPath filtering, lxml is required by bs4 anyway, but put it here to be safe.
-# #2328 - 5.2.0 and 5.2.1 had extra CPU flag CFLAGS set which was not compatible on older hardware
-#         It could be advantageous to run its own pypi package here with those performance flags set
-#         https://bugs.launchpad.net/lxml/+bug/2059910/comments/16
-lxml >=4.8.0,<6,!=5.2.0,!=5.2.1
-
-# XPath 2.0-3.1 support - 4.2.0 broke something?
+aenum==2.2.6
+aniso8601==9.0.1
+appdirs==1.4.4
+apprise==1.8.0
+arrow==1.3.0
+attrs==23.2.0
+Babel==2.15.0
+beautifulsoup4==4.12.3
+blinker==1.8.2
+Brotli==1.1.0
+certifi==2024.7.4
+cffi==1.16.0
+chardet==5.2.0
+charset-normalizer==3.3.2
+click==8.1.7
+cryptography==42.0.8
+decorator==5.1.1
+dnspython==2.6.1
 elementpath==4.1.5
-
-selenium~=4.14.0
-
-werkzeug~=3.0
-
-# Templating, so far just in the URLs but in the future can be for the notifications also
-jinja2~=3.1
-jinja2-time
-openpyxl
-# https://peps.python.org/pep-0508/#environment-markers
-# https://github.com/dgtlmoon/changedetection.io/pull/1009
-jq~=1.3; python_version >= "3.8" and sys_platform == "darwin"
-jq~=1.3; python_version >= "3.8" and sys_platform == "linux"
-
-# playwright is installed at Dockerfile build time because it's not available on all platforms
-
-pyppeteer-ng==2.0.0rc5
-pyppeteerstealth>=0.0.4
-
-# Include pytest, so if theres a support issue we can ask them to run these tests on their setup
-pytest ~=7.2
-pytest-flask ~=1.2
-
-# Pin jsonschema version to prevent build errors on armv6 while rpds-py wheels aren't available (1708)
+et-xmlfile==1.1.0
+eventlet==0.36.1
+extruct==0.17.0
+feedgen==0.9.0
+Flask==2.3.3
+Flask-Compress==1.15
+Flask-Cors==4.0.1
+flask-expects-json==1.7.0
+Flask-JWT-Extended==4.6.0
+Flask-Login==0.6.3
+flask-paginate==2024.4.12
+Flask-RESTful==0.3.10
+Flask-SQLAlchemy==3.1.1
+Flask-WTF==1.2.1
+greenlet==3.0.3
+h11==0.14.0
+html5lib==1.1
+html_text==0.6.2
+idna==3.7
+iniconfig==2.0.0
+inscriptis==2.5.0
+isodate==0.6.1
+itsdangerous==2.2.0
+Jinja2==3.1.4
+jinja2-time==0.2.0
+jq==1.7.0
+jsonpath-ng==1.5.3
 jsonschema==4.17.3
-
-loguru
-
-# For scraping all possible metadata relating to products so we can do better restock detection
-extruct
-
-# For cleaning up unknown currency formats
-babel
-
-# Needed for > 3.10, https://github.com/microsoft/playwright-python/issues/2096
-greenlet >= 3.0.3
+jstyleson==0.0.2
+loguru==0.7.2
+lxml==5.2.2
+lxml_html_clean==0.1.1
+Markdown==3.6
+MarkupSafe==2.1.5
+mf2py==2.0.1
+mypy-extensions==1.0.0
+oauthlib==3.2.2
+openpyxl==3.1.5
+ordered-set==4.1.0
+outcome==1.3.0.post0
+packaging==24.1
+paho-mqtt==1.6.1
+pillow==10.4.0
+pluggy==1.5.0
+ply==3.11
+pycparser==2.22
+pyee==11.1.0
+PyJWT==2.8.0
+pyparsing==3.1.2
+pyppeteer-ng==2.0.0rc5
+pyppeteerstealth==0.0.4
+pyRdfa3==3.6.2
+pyrsistent==0.20.0
+PySocks==1.7.1
+pytest==7.4.4
+pytest-flask==1.3.0
+python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
+pytz==2024.1
+PyYAML==6.0.1
+rdflib==7.0.0
+requests==2.32.3
+requests-oauthlib==2.0.0
+selenium==4.14.0
+six==1.16.0
+sniffio==1.3.1
+sortedcontainers==2.4.0
+soupsieve==2.5
+SQLAlchemy==2.0.31
+timeago==1.0.16
+tqdm==4.66.4
+trio==0.26.0
+trio-websocket==0.11.1
+types-python-dateutil==2.9.0.20240316
+typing-inspect==0.5.0
+typing_extensions==4.12.2
+urllib3==1.26.19
+validators==0.33.0
+w3lib==2.2.1
+webencodings==0.5.1
+websockets==10.4
+Werkzeug==3.0.3
+wsproto==1.2.0
+WTForms==3.1.2
+zstandard==0.23.0
