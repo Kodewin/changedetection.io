@@ -12,3 +12,5 @@ test-datastore/*
 test-datastore
 *.egg-info*
 .vscode/settings.json
+changedetectionio/.env
+instance/users.db

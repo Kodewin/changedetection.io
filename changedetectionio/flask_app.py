@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+
 import datetime
 import flask_login
 import locale
@@ -22,25 +23,35 @@ from flask import (
     Flask,
     abort,
     flash,
+    jsonify,
     make_response,
     redirect,
     render_template,
     request,
     send_from_directory,
     session,
-    url_for,
-)
+    url_for
+    )
 from flask_compress import Compress as FlaskCompress
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 from flask_login import current_user
 from flask_paginate import Pagination, get_page_parameter
-from flask_restful import abort, Api
-from flask_cors import CORS
+from flask_restful import Api, abort
 from flask_wtf import CSRFProtect
 from loguru import logger
 
-from changedetectionio import html_tools, __version__
-from changedetectionio import queuedWatchMetaData
+from changedetectionio import __version__, html_tools, queuedWatchMetaData
 from changedetectionio.api import api_v1
+from changedetectionio.blueprint.auth_blueprint import auth_blueprint, init_db
+from changedetectionio.blueprint.auth_blueprint.models import db
+from changedetectionio.strtobool import strtobool
+
+from .safe_jinja import render as jinja_render
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 datastore = None
 
@@ -53,10 +64,9 @@ extra_stylesheets = []
 update_q = queue.PriorityQueue()
 notification_q = queue.Queue()
 
-app = Flask(__name__,
-            static_url_path="",
-            static_folder="static",
-            template_folder="templates")
+app = Flask(
+    __name__, static_url_path="", static_folder="static", template_folder="templates"
+)
 
 # Enable CORS, especially useful for the Chrome extension to operate from anywhere
 CORS(app)
@@ -65,23 +75,38 @@ CORS(app)
 FlaskCompress(app)
 
 # Stop browser caching of assets
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 
 app.config.exit = Event()
 
-app.config['NEW_VERSION_AVAILABLE'] = False
+app.config["NEW_VERSION_AVAILABLE"] = False
 
-if os.getenv('FLASK_SERVER_NAME'):
-    app.config['SERVER_NAME'] = os.getenv('FLASK_SERVER_NAME')
+if os.getenv("FLASK_SERVER_NAME"):
+    app.config["SERVER_NAME"] = os.getenv("FLASK_SERVER_NAME")
 
-#app.config["EXPLAIN_TEMPLATE_LOADING"] = True
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SECRET_KEY"] = "supersecretkey"
+
+app.config["JWT_SECRET_KEY"] = (
+    "pxYBz4LfoT1BSb_hoNV_owsp7INW-8hD"  
+)
+jwt = JWTManager(app)
+
+app.register_blueprint(auth_blueprint, url_prefix="/api/auth")
+init_db(app)
+
+with app.app_context():
+    db.create_all()
+
+# app.config["EXPLAIN_TEMPLATE_LOADING"] = True
 
 # Disables caching of the templates
-app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.jinja_env.add_extension('jinja2.ext.loopcontrols')
+app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.jinja_env.add_extension("jinja2.ext.loopcontrols")
 csrf = CSRFProtect()
-csrf.init_app(app)
-notification_debug_log=[]
+# csrf.init_app(app)
+notification_debug_log = []
 
 # get locale ready
 default_locale = locale.getdefaultlocale()
@@ -127,6 +152,17 @@ def _jinja2_filter_format_number_locale(value: float) -> str:
     formatted_value = locale.format_string("%.2f", value, grouping=True)
 
     return formatted_value
+
+@app.route("/ddb", methods=["GET"])
+def delete_database():
+    db_path = app.config["SQLALCHEMY_DATABASE_URI"].replace("sqlite:///", "")
+
+    if os.path.exists(db_path):
+        os.remove(db_path)
+        return jsonify({"message": f"Database {db_path} deleted."}), 200
+    else:
+        return jsonify ({"message": f"Database {db_path} not found."}), 404
+
 
 # We use the whole watch object from the store/JSON so we can see if there's some related status in terms of a thread
 # running or something similar.
@@ -534,6 +570,7 @@ def changedetection_app(config=None, datastore_o=None):
 
         # Watch_uuid could be unsuet in the case its used in tag editor, global setings
         import apprise
+
         from .apprise_asset import asset
         apobj = apprise.Apprise(asset=asset)
 
@@ -637,7 +674,7 @@ def changedetection_app(config=None, datastore_o=None):
     # https://stackoverflow.com/questions/42984453/wtforms-populate-form-with-data-if-data-exists
     # https://wtforms.readthedocs.io/en/3.0.x/forms/#wtforms.form.Form.populate_obj ?
     def edit_page(uuid):
-        from . import forms
+        from . import forms, processors
         from .blueprint.browser_steps.browser_steps import browser_step_ui_config
         from . import processors
         import importlib
@@ -947,7 +984,7 @@ def changedetection_app(config=None, datastore_o=None):
 
         if request.method == 'POST':
 
-            from .importer import import_url_list, import_distill_io_json
+            from .importer import import_distill_io_json, import_url_list
 
             # URL List import
             if request.values.get('urls') and len(request.values.get('urls').strip()):
@@ -973,7 +1010,7 @@ def changedetection_app(config=None, datastore_o=None):
             # XLSX importer
             if request.files and request.files.get('xlsx_file'):
                 file = request.files['xlsx_file']
-                from .importer import import_xlsx_wachete, import_xlsx_custom
+                from .importer import import_xlsx_custom, import_xlsx_wachete
 
                 if request.values.get('file_mapping') == 'wachete':
                     w_importer = import_xlsx_wachete()
@@ -1528,9 +1565,7 @@ def changedetection_app(config=None, datastore_o=None):
             flash("{} watches cleared/reset.".format(len(uuids)))
 
         elif (op == 'notification-default'):
-            from changedetectionio.notification import (
-                default_notification_format_for_watch
-            )
+            from changedetectionio.notification import default_notification_format_for_watch
             for uuid in uuids:
                 uuid = uuid.strip()
                 if datastore.data['watching'].get(uuid):
@@ -1559,8 +1594,9 @@ def changedetection_app(config=None, datastore_o=None):
     def form_share_put_watch():
         """Given a watch UUID, upload the info and return a share-link
            the share-link can be imported/added"""
-        import requests
         import json
+
+        import requests
         uuid = request.args.get('uuid')
 
         # more for testing
@@ -1683,8 +1719,8 @@ def check_for_new_version():
 
 def notification_runner():
     global notification_debug_log
-    from datetime import datetime
     import json
+    from datetime import datetime
     while not app.config.exit.is_set():
         try:
             # At the moment only one thread runs (single runner)
@@ -1699,6 +1735,7 @@ def notification_runner():
 
             try:
                 from changedetectionio import notification
+
                 # Fallback to system config if not set
                 if not n_object.get('notification_body') and datastore.data['settings']['application'].get('notification_body'):
                     n_object['notification_body'] = datastore.data['settings']['application'].get('notification_body')
@@ -1730,6 +1767,7 @@ def notification_runner():
 # Threaded runner, look for new watches to feed into the Queue.
 def ticker_thread_check_time_launch_checks():
     import random
+
     from changedetectionio import update_worker
 
     proxy_last_called_time = {}
