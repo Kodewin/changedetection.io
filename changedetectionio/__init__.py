@@ -55,7 +55,7 @@ def main():
         os.makedirs(datastore_path, exist_ok=True)
     else:
         # Must be absolute so that send_from_directory doesnt try to make it relative to backend/
-        datastore_path = os.path.join(os.getcwd(), "../datastore")
+        datastore_path = os.path.join(os.getcwd(), "datastore")
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "6Ccsd:h:p:l:", "port")
