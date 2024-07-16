@@ -36,7 +36,9 @@ h11==0.14.0
 html5lib==1.1
 html_text==0.6.2
 idna==3.7
+
 importlib_metadata==8.0.0
+
 iniconfig==2.0.0
 inscriptis==2.5.0
 isodate==0.6.1
@@ -67,7 +69,9 @@ pycparser==2.22
 pyee==11.1.0
 PyJWT==2.8.0
 pyparsing==3.1.2
+
 pyppeteer==2.0.0
+
 pyppeteerstealth==0.0.4
 pyRdfa3==3.6.2
 pyrsistent==0.20.0
@@ -102,5 +106,7 @@ websockets==10.4
 Werkzeug==3.0.3
 wsproto==1.2.0
 WTForms==3.1.2
+
 zipp==3.19.2
 zstandard==0.23.0
+
