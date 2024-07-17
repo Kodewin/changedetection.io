@@ -104,14 +104,8 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.jinja_env.add_extension("jinja2.ext.loopcontrols")
 csrf = CSRFProtect()
 
-csrf.init_app(app)
+# csrf.init_app(app)
 
-
-def exempt_blueprint(blueprint):
-    for view_func in blueprint.view_functions.values():
-        csrf.exempt(view_func)
-
-exempt_blueprint(auth_blueprint)
 
 notification_debug_log = []
 
