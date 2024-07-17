@@ -86,11 +86,9 @@ if os.getenv("FLASK_SERVER_NAME"):
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SECRET_KEY"] = "supersecretkey"
+app.config["SECRET_KEY"] = os.environ['SECRET_KEY']
 
-app.config["JWT_SECRET_KEY"] = (
-    "pxYBz4LfoT1BSb_hoNV_owsp7INW-8hD"  
-)
+app.config["JWT_SECRET_KEY"] = os.environ['JWT_SECRET_KEY']
 jwt = JWTManager(app)
 
 app.register_blueprint(auth_blueprint, url_prefix="/api/auth")
@@ -108,7 +106,12 @@ csrf = CSRFProtect()
 
 csrf.init_app(app)
 
-# csrf.init_app(app)
+
+def exempt_blueprint(blueprint):
+    for view_func in blueprint.view_functions.values():
+        csrf.exempt(view_func)
+
+exempt_blueprint(auth_blueprint)
 
 notification_debug_log = []
 

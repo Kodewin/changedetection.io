@@ -14,3 +14,4 @@ test-datastore
 .vscode/settings.json
 changedetectionio/.env
 instance/users.db
+changedetectionio/.env.production
