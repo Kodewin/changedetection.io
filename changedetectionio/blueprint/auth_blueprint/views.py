@@ -3,12 +3,7 @@ import os
 import jwt
 import requests
 from flask import jsonify, request
-from flask_jwt_extended import (
-    create_access_token,
-    create_refresh_token,
-    get_jwt_identity,
-    jwt_required,
-)
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
 
 from . import auth_blueprint
 from .models import User, db
@@ -36,8 +31,8 @@ def auth_url():
         "GET",
         "https://accounts.google.com/o/oauth2/v2/auth",
         params={
-            "client_id": "596958883066-63khaq4n9s89lra9tkibaro17rkhbmno.apps.googleusercontent.com",
-            "redirect_uri": "http://localhost:3000/api/auth/callback/google",
+            "client_id": os.environ["GOOGLE_CLIENT_ID"],
+            "redirect_uri": f"{os.environ['CLIENT_HOST']}/api/auth/callback/google",
             "scope": "https://www.googleapis.com/auth/userinfo.email "
             "https://www.googleapis.com/auth/userinfo.profile",
             "access_type": "offline",
@@ -53,7 +48,7 @@ def auth_url():
 @auth_blueprint.route("/google/login", methods=["POST"])
 def google_login():
     code = request.get_json()["code"]
-    token_data = get_auth_tokens(code, "http://localhost:3000/api/auth/callback/google")
+    token_data = get_auth_tokens(code, f"{os.environ['CLIENT_HOST']}/api/auth/callback/google")
     data = jwt.decode(token_data["id_token"], options={"verify_signature": False})
     email = data["email"]
     name = data["name"]
