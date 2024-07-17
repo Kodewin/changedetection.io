@@ -106,6 +106,7 @@ csrf = CSRFProtect()
 
 # csrf.init_app(app)
 
+
 notification_debug_log = []
 
 # get locale ready
