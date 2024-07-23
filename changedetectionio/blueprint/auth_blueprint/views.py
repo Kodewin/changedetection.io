@@ -48,7 +48,9 @@ def auth_url():
 @auth_blueprint.route("/google/login", methods=["POST"])
 def google_login():
     code = request.get_json()["code"]
-    token_data = get_auth_tokens(code, f"{os.environ['CLIENT_HOST']}/api/auth/callback/google")
+    token_data = get_auth_tokens(
+        code, f"{os.environ['CLIENT_HOST']}/api/auth/callback/google"
+    )
     data = jwt.decode(token_data["id_token"], options={"verify_signature": False})
     email = data["email"]
     name = data["name"]
@@ -67,7 +69,7 @@ def google_login():
 
 @auth_blueprint.route("/me", methods=["GET"])
 @jwt_required()
-def protected():
+def profile():
     current_user = get_jwt_identity()
     user = User.query.filter_by(email=current_user).first()
-    return jsonify(logged_in_as=user.name), 200
+    return jsonify(name=user.name, email=user.email), 200
