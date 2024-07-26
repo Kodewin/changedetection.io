@@ -1,18 +1,21 @@
+import copy
 import os
+
+import validators
+from flask import make_response, request
+from flask_expects_json import expects_json
+from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_restful import Resource, abort
+
+from changedetectionio import queuedWatchMetaData
+from changedetectionio.blueprint.auth_blueprint.models import User
 from changedetectionio.strtobool import strtobool
 
-from flask_expects_json import expects_json
-from changedetectionio import queuedWatchMetaData
-from flask_restful import abort, Resource
-from flask import request, make_response
-import validators
-from . import auth
-import copy
+from ..model import watch_base
+from . import api_schema, auth
 
 # See docs/README.md for rebuilding the docs/apidoc information
 
-from . import api_schema
-from ..model import watch_base
 
 # Build a JSON Schema atleast partially based on our Watch model
 watch_base_config = watch_base()
@@ -207,8 +210,9 @@ class CreateWatch(Resource):
         self.datastore = kwargs['datastore']
         self.update_q = kwargs['update_q']
 
-    @auth.check_token
+    # @auth.check_token
     @expects_json(schema_create_watch)
+    @jwt_required()
     def post(self):
         """
         @api {post} /api/v1/watch Create a single watch
@@ -220,7 +224,9 @@ class CreateWatch(Resource):
         @apiSuccess (200) {String} OK Was created
         @apiSuccess (500) {String} ERR Some other error
         """
-
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(email=current_user).first()
+        schema_create_watch['user_id'] = user.id
         json_data = request.get_json()
         url = json_data['url'].strip()
 
@@ -235,6 +241,7 @@ class CreateWatch(Resource):
                 return "Invalid proxy choice, currently supported proxies are '{}'".format(', '.join(plist)), 400
 
         extras = copy.deepcopy(json_data)
+        extras['user_id'] = user.id
 
         # Because we renamed 'tag' to 'tags' but don't want to change the API (can do this in v2 of the API)
         tags = None
@@ -243,7 +250,6 @@ class CreateWatch(Resource):
             del extras['tag']
 
         del extras['url']
-
         new_uuid = self.datastore.add_watch(url=url, extras=extras, tag=tags)
         if new_uuid:
             self.update_q.put(queuedWatchMetaData.PrioritizedItem(priority=1, item={'uuid': new_uuid, 'skip_when_checksum_same': True}))
@@ -251,7 +257,8 @@ class CreateWatch(Resource):
         else:
             return "Invalid or unsupported URL", 400
 
-    @auth.check_token
+    # @auth.check_token
+    @jwt_required()
     def get(self):
         """
         @api {get} /api/v1/watch List watches
@@ -281,17 +288,19 @@ class CreateWatch(Resource):
         @apiGroup Watch Management
         @apiSuccess (200) {String} OK JSON dict
         """
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(email=current_user).first()
         list = {}
 
         tag_limit = request.args.get('tag', '').lower()
-
 
         for uuid, watch in self.datastore.data['watching'].items():
             # Watch tags by name (replace the other calls?)
             tags = self.datastore.get_all_tags_for_watch(uuid=uuid)
             if tag_limit and not any(v.get('title').lower() == tag_limit for k, v in tags.items()):
                 continue
-
+            if watch['user_id'] != user.id:
+                continue
             list[uuid] = {
                 'last_changed': watch.last_changed,
                 'last_checked': watch['last_checked'],
