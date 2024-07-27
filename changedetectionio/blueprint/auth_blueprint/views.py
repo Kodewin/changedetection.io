@@ -73,3 +73,12 @@ def profile():
     current_user = get_jwt_identity()
     user = User.query.filter_by(email=current_user).first()
     return jsonify(name=user.name, email=user.email), 200
+
+
+@auth_blueprint.route("/token/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    identity = get_jwt_identity()
+    access_token = create_access_token(identity=identity, fresh=False)
+    refresh_token = create_refresh_token(identity=identity)
+    return jsonify({"access": access_token, "refresh": refresh_token}), 200
