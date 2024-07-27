@@ -83,7 +83,7 @@ class Watch(Resource):
         watch['viewed'] = watch.viewed
         return watch
 
-    @auth.check_token
+    # @auth.check_token
     def delete(self, uuid):
         """
         @api {delete} /api/v1/watch/:uuid Delete a watch and related history
