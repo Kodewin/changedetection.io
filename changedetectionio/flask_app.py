@@ -1,23 +1,18 @@
 #!/usr/bin/python3
-
-
-import datetime
-import flask_login
 import locale
 import os
-import pytz
 import queue
 import threading
 import time
-import timeago
-
-from .processors import find_processors, get_parent_module, get_custom_watch_obj_for_processor
-from .safe_jinja import render as jinja_render
-from changedetectionio.strtobool import strtobool
 from copy import deepcopy
+from datetime import timedelta
 from functools import wraps
 from threading import Event
 
+import flask_login
+import pytz
+import timeago
+from dotenv import load_dotenv
 from feedgen.feed import FeedGenerator
 from flask import (
     Flask,
@@ -47,9 +42,8 @@ from changedetectionio.blueprint.auth_blueprint import auth_blueprint, init_db
 from changedetectionio.blueprint.auth_blueprint.models import db
 from changedetectionio.strtobool import strtobool
 
+from .processors import find_processors, get_custom_watch_obj_for_processor, get_parent_module
 from .safe_jinja import render as jinja_render
-
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -89,6 +83,8 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.environ['SECRET_KEY']
 
 app.config["JWT_SECRET_KEY"] = os.environ['JWT_SECRET_KEY']
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=30)
+
 jwt = JWTManager(app)
 
 app.register_blueprint(auth_blueprint, url_prefix="/api/auth")
