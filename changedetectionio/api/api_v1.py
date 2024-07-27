@@ -299,8 +299,11 @@ class CreateWatch(Resource):
             tags = self.datastore.get_all_tags_for_watch(uuid=uuid)
             if tag_limit and not any(v.get('title').lower() == tag_limit for k, v in tags.items()):
                 continue
-            if watch['user_id'] != user.id:
-                continue
+            try:
+                if watch['user_id'] != user.id:
+                    continue
+            except:
+                pass
             list[uuid] = {
                 'last_changed': watch.last_changed,
                 'last_checked': watch['last_checked'],
