@@ -1,23 +1,21 @@
-from changedetectionio.strtobool import strtobool
-
-from flask import (
-    flash
-)
-
-from . model import App, Watch
-from copy import deepcopy, copy
-from os import path, unlink
-from threading import Lock
 import json
 import os
 import re
-import requests
 import secrets
 import threading
 import time
 import uuid as uuid_builder
+from copy import copy, deepcopy
+from os import path, unlink
+from threading import Lock
+
+import requests
+from flask import flash
 from loguru import logger
 
+from changedetectionio.strtobool import strtobool
+
+from .model import App, Watch
 from .processors import get_custom_watch_obj_for_processor
 from .processors.restock_diff import Restock
 
@@ -98,14 +96,6 @@ class ChangeDetectionStore:
         except (FileNotFoundError):
             if include_default_watches:
                 logger.critical(f"No JSON DB found at {self.json_store_path}, creating JSON store at {self.datastore_path}")
-                self.add_watch(url='https://news.ycombinator.com/',
-                               tag='Tech news',
-                               extras={'fetch_backend': 'html_requests'})
-
-                self.add_watch(url='https://changedetection.io/CHANGELOG.txt',
-                               tag='changedetection.io',
-                               extras={'fetch_backend': 'html_requests'})
-
             updates_available = self.get_updates_available()
             self.__data['settings']['application']['schema_version'] = updates_available.pop()
 
@@ -747,6 +737,7 @@ class ChangeDetectionStore:
     def update_9(self):
         # Each watch
         import re
+
         # only { } not {{ or }}
         r = r'(?<!{){(?!{)(\w+)(?<!})}(?!})'
         for uuid, watch in self.data['watching'].items():
