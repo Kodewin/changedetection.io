@@ -242,8 +242,10 @@ class CreateWatch(Resource):
 
         extras = copy.deepcopy(json_data)
         extras['user_id'] = user.id
-        json_data['tags'] = json_data['tags'].split()
-        extras['tags'] = json_data['tags']
+        try:
+            json_data['tags'] = json_data['tags'].split()
+            extras['tags'] = json_data['tags']
+        except: None
         del extras['url']
         new_uuid = self.datastore.add_watch(url=url, extras=extras)
         if new_uuid:
