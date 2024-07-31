@@ -211,7 +211,7 @@ class CreateWatch(Resource):
         self.update_q = kwargs['update_q']
 
     # @auth.check_token
-    @expects_json(schema_create_watch)
+    # @expects_json(schema_create_watch)
     @jwt_required()
     def post(self):
         """
@@ -242,15 +242,10 @@ class CreateWatch(Resource):
 
         extras = copy.deepcopy(json_data)
         extras['user_id'] = user.id
-
-        # Because we renamed 'tag' to 'tags' but don't want to change the API (can do this in v2 of the API)
-        tags = None
-        if extras.get('tag'):
-            tags = extras.get('tag')
-            del extras['tag']
-
+        json_data['tags'] = json_data['tags'].split()
+        extras['tags'] = json_data['tags']
         del extras['url']
-        new_uuid = self.datastore.add_watch(url=url, extras=extras, tag=tags)
+        new_uuid = self.datastore.add_watch(url=url, extras=extras)
         if new_uuid:
             self.update_q.put(queuedWatchMetaData.PrioritizedItem(priority=1, item={'uuid': new_uuid, 'skip_when_checksum_same': True}))
             return {'uuid': new_uuid}, 201
