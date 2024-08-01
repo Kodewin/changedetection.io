@@ -3,7 +3,6 @@ import os
 
 import validators
 from flask import make_response, request
-from flask_expects_json import expects_json
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, abort
 
@@ -100,8 +99,8 @@ class Watch(Resource):
         self.datastore.delete(uuid)
         return 'OK', 204
 
-    @auth.check_token
-    @expects_json(schema_update_watch)
+    # @auth.check_token
+    # @expects_json(schema_update_watch)
     def put(self, uuid):
         """
         @api {put} /api/v1/watch/:uuid Update watch information
@@ -211,7 +210,7 @@ class CreateWatch(Resource):
         self.update_q = kwargs['update_q']
 
     # @auth.check_token
-    @expects_json(schema_create_watch)
+    # @expects_json(schema_create_watch)
     @jwt_required()
     def post(self):
         """
